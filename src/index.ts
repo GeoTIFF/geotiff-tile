@@ -92,7 +92,6 @@ export default async function createTile({
     target_height: tile_height,
     target_width: tile_width
   });
-  console.log({readResult});
 
   const [theoretical_min, theoretical_max] = (() => {
     switch (readResult.data[0].name) {
