@@ -26,7 +26,7 @@
     "clean": "npx rimraf dist",
     "serve": "npx srvd --debug",
     "setup": "cd data && ./setup.sh",
-    "test": "node test.js"
+    "test": "echo 'no automated tests'"
   },
   "repository": {
     "type": "git",
