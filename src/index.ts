@@ -1,4 +1,3 @@
-import type { GeoTIFF } from "geotiff";
 import geowarp from "geowarp";
 import readBoundingBox from "geotiff-read-bbox";
 import get_geotiff_epsg_code from "geotiff-epsg-code";
@@ -31,7 +30,7 @@ export default async function createTile({
   cutline?: any,
   cutline_srs?: number,
   debug_level?: number,
-  geotiff: GeoTIFF,
+  geotiff: any,
   expr?: ({ pixel }: { pixel: number[] }) => number[],
   // fit?: boolean | undefined;
   layout?: string;
