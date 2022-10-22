@@ -8,8 +8,8 @@
   "unpkg": "./dist/web/geotiff-tile.min.js",
   "types": "./src/index.ts",
   "exports": {
-    "import": "./dist/esm/index.js",
-    "require": "./dist/cjs/index.js"
+    "import": "./dist/esm/geotiff-tile.js",
+    "require": "./dist/cjs/geotiff-tile.js"
   },
   "files": [
     "./dist/cjs/geotiff-tile.js",
