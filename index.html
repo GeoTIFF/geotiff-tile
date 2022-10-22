@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://unpkg.com/flug"></script>
+    <script src="https://unpkg.com/geotiff@2.0.5/dist-browser/geotiff.js"></script>
+    <script src="./dist/web/main.js"></script>
+  </head>
+  <body>
+    <script>
+      function displayTile({ tile, height, width }) {
+        const data = Uint8ClampedArray.from(tile);
+        const imageData = new ImageData(data, width, height);
+        const canvas = document.createElement("CANVAS");
+        canvas.height = imageData.height;
+        canvas.width = imageData.width;
+        const context = canvas.getContext("2d");
+        context.webkitImageSmoothingEnabled = false;
+        context.mozImageSmoothingEnabled = false;
+        context.imageSmoothingEnabled = false;
+        context.putImageData(imageData, 0, 0);
+        context.webkitImageSmoothingEnabled = false;
+        context.mozImageSmoothingEnabled = false;
+        context.imageSmoothingEnabled = false;
+        document.body.appendChild(canvas);
+        canvas.style.background = "darkred";
+        canvas.style.border = "5px solid chartreuse";
+        canvas.style.margin = "10px";
+        canvas.style.height = "512px";
+      }
+
+
+      test("pulling tile from 4-band Web Mercator GeoTIFF", async ({ eq }) => {
+        const geotiff = await GeoTIFF.fromUrl("./data/gadas.tif");
+        const result = await geotiff_tile.createTile({
+          geotiff,
+          bbox: [74.35546875, 4.214943141390651, 84.90234375, 13.752724664396988],
+          height: 512,
+          layout: "[row,column,band]",
+          width: 512
+        });
+        displayTile(result);
+      });
+
+      test("pulling tile from 3-band Geographic GeoTIFF", async ({ eq }) => {
+        const geotiff = await GeoTIFF.fromUrl("./data/wildfires.tiff");
+        const { height, width, tile } = await geotiff_tile.createTile({
+          debug_level: 1,
+          geotiff,
+          bbox: [-122.49755859375, 38.8520508, -120.06958007812499, 40.697299008636755],
+          bbox_srs: 4326,
+          height: 512,
+          layout: "[band][row][column]",
+          method: "median",
+          round: true,
+          srs: 4326,
+          width: 512
+        });
+
+        // convert 3 band to 4 band
+        const data = new Array(4 * height * width).fill(255);
+        for (let b = 0; b <= 2; b++) {
+          for (let r = 0; r < height; r++) {
+            for (let c = 0; c < width; c++) {
+              data[(r * 4 * width) + (4 * c) + b] = tile[b][r][c];
+            }
+          }
+        }
+        displayTile({ tile: data, height, width});
+      });
+    </script>
+  </body>
+</html>

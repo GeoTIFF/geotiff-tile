@@ -1,0 +1,68 @@
+{
+  "name": "geotiff-tile",
+  "version": "0.0.0",
+  "description": "Generate a Map Tile from a GeoTIFF File.",
+  "main": "./dist/cjs/geotiff-tile.js",
+  "module": "./dist/esm/geotiff-tile.js",
+  "jsdelivr": "./dist/web/geotiff-tile.min.js",
+  "unpkg": "./dist/web/geotiff-tile.min.js",
+  "types": "./src/index.ts",
+  "exports": {
+    "import": "./dist/esm/index.js",
+    "require": "./dist/cjs/index.js"
+  },
+  "files": [
+    "./dist/cjs/geotiff-tile.js",
+    "./dist/esm/geotiff-tile.js",
+    "./dist/web/main.js",
+    "./dist/web/main.js.map",
+    "./src/index.ts"
+  ],
+  "scripts": {
+    "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:web",
+    "build:cjs": "npx babel --plugins @babel/plugin-transform-modules-commonjs --plugins @babel/plugin-proposal-export-namespace-from ./dist/esm/geotiff-tile.js --out-file ./dist/cjs/geotiff-tile.js && echo '\nmodule.exports = exports.default; module.exports.default = exports.default;' >> ./dist/cjs/geotiff-tile.js",
+    "build:esm": "npx babel --extensions \".ts\" --ignore '**/test.ts' --ignore '**/index.md' --plugins @babel/plugin-proposal-export-namespace-from --presets @babel/preset-typescript ./src/index.ts --out-file ./dist/esm/geotiff-tile.js && rm -fr ./dist/*/*bak*",
+    "build:web": "npx webpack --config=webpack.config.js",
+    "clean": "npx rimraf dist",
+    "serve": "npx srvd --debug",
+    "setup": "cd data && ./setup.sh",
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GeoTIFF/geotiff-tile.git"
+  },
+  "keywords": [
+    "geotiff",
+    "tile"
+  ],
+  "author": "Daniel J. Dufour",
+  "license": "CC0-1.0",
+  "bugs": {
+    "url": "https://github.com/GeoTIFF/geotiff-tile/issues"
+  },
+  "homepage": "https://github.com/GeoTIFF/geotiff-tile#readme",
+  "dependencies": {
+    "geotiff-epsg-code": "^0.0.1",
+    "geotiff-read-bbox": "^1.1.0",
+    "geowarp": "^1.5.0",
+    "pixel-utils": "^0.7.0",
+    "proj4": "^2.8.0",
+    "proj4-fully-loaded": "^0.1.0",
+    "reproject-bbox": "^0.4.2"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.19.3",
+    "@babel/core": "^7.19.3",
+    "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
+    "@babel/plugin-transform-modules-commonjs": "^7.18.6",
+    "@babel/preset-typescript": "^7.18.6",
+    "envisage": "^0.1.0",
+    "geotiff": "^2.0.5",
+    "rimraf": "^3.0.2",
+    "snap-bbox": "^0.3.0",
+    "srvd": "^0.4.0",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
+  }
+}
