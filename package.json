@@ -14,8 +14,8 @@
   "files": [
     "./dist/cjs/geotiff-tile.js",
     "./dist/esm/geotiff-tile.js",
-    "./dist/web/main.js",
-    "./dist/web/main.js.map",
+    "./dist/web/geotiff-tile.js",
+    "./dist/web/geotiff-tile.js.map",
     "./src/index.ts"
   ],
   "scripts": {
