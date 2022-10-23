@@ -24,6 +24,7 @@
     "build:esm": "npx babel --extensions \".ts\" --ignore '**/test.ts' --ignore '**/index.md' --plugins @babel/plugin-proposal-export-namespace-from --presets @babel/preset-typescript ./src/index.ts --out-file ./dist/esm/geotiff-tile.js && rm -fr ./dist/*/*bak*",
     "build:web": "npx webpack --config=webpack.config.js",
     "clean": "npx rimraf dist",
+    "format": "npx prettier --arrow-parens=avoid --print-width=160 --trailing-comma=none --write src/index.ts",
     "serve": "npx srvd --debug",
     "setup": "cd data && ./setup.sh",
     "test": "echo 'no automated tests'"
