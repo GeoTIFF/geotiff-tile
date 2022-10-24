@@ -106,4 +106,4 @@ dist
 pnpm-lock.yaml
 data/*cog*
 data/*tif*
-
+*bak*

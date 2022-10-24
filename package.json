@@ -25,6 +25,7 @@
     "build:web": "npx webpack --config=webpack.config.js",
     "clean": "npx rimraf dist",
     "format": "npx prettier --arrow-parens=avoid --print-width=160 --trailing-comma=none --write src/index.ts",
+    "prepublish": "npm run format && npm run build && npm run test",
     "serve": "npx srvd --debug",
     "setup": "cd data && ./setup.sh",
     "test": "echo 'no automated tests'"
@@ -44,7 +45,7 @@
   },
   "homepage": "https://github.com/GeoTIFF/geotiff-tile#readme",
   "dependencies": {
-    "geotiff-epsg-code": "^0.1.0",
+    "geotiff-epsg-code": "^0.2.0",
     "geotiff-read-bbox": "^1.1.0",
     "geowarp": "^1.5.0",
     "pixel-utils": "^0.7.0",
