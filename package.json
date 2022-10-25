@@ -46,8 +46,9 @@
   "homepage": "https://github.com/GeoTIFF/geotiff-tile#readme",
   "dependencies": {
     "geotiff-epsg-code": "^0.2.0",
-    "geotiff-read-bbox": "^1.1.0",
-    "geowarp": "^1.5.0",
+    "geotiff-precise-no-data": "^0.0.1",
+    "geotiff-read-bbox": "^1.2.0",
+    "geowarp": "^1.7.0",
     "pixel-utils": "^0.7.0",
     "proj4": "^2.8.0",
     "proj4-fully-loaded": "^0.1.0",
@@ -55,9 +56,9 @@
   },
   "devDependencies": {
     "@babel/cli": "^7.19.3",
-    "@babel/core": "^7.19.3",
+    "@babel/core": "^7.19.6",
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
-    "@babel/plugin-transform-modules-commonjs": "^7.18.6",
+    "@babel/plugin-transform-modules-commonjs": "^7.19.6",
     "@babel/preset-typescript": "^7.18.6",
     "envisage": "^0.1.0",
     "geotiff": "^2.0.5",

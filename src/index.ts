@@ -1,10 +1,20 @@
 import geowarp from "geowarp";
 import readBoundingBox from "geotiff-read-bbox";
 import get_geotiff_epsg_code from "geotiff-epsg-code";
+import get_precise_no_data_value from "geotiff-precise-no-data";
 // import { rawToRgb } from "pixel-utils";
 import proj4fullyloaded from "proj4-fully-loaded";
 import reproject_bbox from "reproject-bbox";
 // import snap_bbox from "snap-bbox";
+
+export async function getNoDataNumber(geotiff) {
+  const image = await geotiff.getImage();
+  const precise_no_data_value = get_precise_no_data_value(image);
+  if (typeof precise_no_data_value === undefined) return;
+  const no_data_value = Number(precise_no_data_value);
+  if (isNaN(no_data_value)) return;
+  return no_data_value;
+}
 
 export default async function createTile({
   // bands,
@@ -18,6 +28,7 @@ export default async function createTile({
   // fit = false,
   layout: tile_layout = "[band][row,column]",
   method,
+  pixel_depth,
   round,
   height: tile_height = 256,
   srs: tile_srs = 3857, // epsg code of the output tile
@@ -38,6 +49,7 @@ export default async function createTile({
   method: string | (({ values }: { values: number[] }) => number);
   round?: boolean;
   height: number;
+  pixel_depth?: number;
   srs?: number;
   timed?: boolean | undefined;
   use_overview?: boolean;
@@ -49,6 +61,8 @@ export default async function createTile({
     const start_time = timed ? performance.now() : 0;
 
     if (!bbox) throw new Error("[geotiff-tile] you must provide bbox");
+
+    const image = await geotiff.getImage(0);
 
     const bbox_nums = [Number(bbox[0]), Number(bbox[1]), Number(bbox[2]), Number(bbox[3])] as const;
 
@@ -106,6 +120,7 @@ export default async function createTile({
       target_height: tile_height,
       target_width: tile_width
     });
+    if (debug_level >= 2) console.log("[geotiff-tile] geotiff-read-bbox result is:\n", readResult);
     if (timed) console.log("[geotiff-tile] reading bounding box took " + Math.round(performance.now() - start_read_bbox) + "ms");
 
     const [theoretical_min, theoretical_max] = (() => {
@@ -165,6 +180,7 @@ export default async function createTile({
       in_data: readResult.data,
       in_bbox: readResult.read_bbox,
       in_layout: "[band][row,column]",
+      in_no_data: await getNoDataNumber(geotiff),
       in_srs: geotiff_srs,
       in_width: readResult.width,
       in_height: readResult.height,
@@ -173,6 +189,7 @@ export default async function createTile({
       out_bbox: bbox_in_tile_srs.map(it => Number(it)),
       out_height: tile_height,
       out_layout: tile_layout,
+      out_pixel_depth: pixel_depth,
       out_srs: tile_srs,
       out_width: tile_width,
       round,
