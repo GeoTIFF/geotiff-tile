@@ -44,15 +44,15 @@ createTile({
   // round pixel values to integers
   round,
 
-  // tile height in pixel
-  height: 512,
-
   // projection of the tile
   // as an EPSG code
-  srs: 3857,
+  tile_srs: 3857,
+
+  // tile height in pixel
+  tile_height: 512,
 
   // width of tile in pixels
-  width: 512,
+  tile_width: 512,
 
   // whether to use overviews if available
   use_overview

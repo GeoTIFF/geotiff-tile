@@ -1,20 +1,11 @@
 import geowarp from "geowarp";
 import readBoundingBox from "geotiff-read-bbox";
 import get_geotiff_epsg_code from "geotiff-epsg-code";
-import get_precise_no_data_value from "geotiff-precise-no-data";
+import get_geotiff_no_data_number from "geotiff-no-data";
 // import { rawToRgb } from "pixel-utils";
 import proj4fullyloaded from "proj4-fully-loaded";
 import reproject_bbox from "reproject-bbox";
 // import snap_bbox from "snap-bbox";
-
-export async function getNoDataNumber(geotiff) {
-  const image = await geotiff.getImage();
-  const precise_no_data_value = get_precise_no_data_value(image);
-  if (typeof precise_no_data_value === undefined) return;
-  const no_data_value = Number(precise_no_data_value);
-  if (isNaN(no_data_value)) return;
-  return no_data_value;
-}
 
 export default async function createTile({
   // bands,
@@ -30,10 +21,10 @@ export default async function createTile({
   method,
   pixel_depth,
   round,
-  height: tile_height = 256,
-  srs: tile_srs = 3857, // epsg code of the output tile
+  tile_height = 256,
+  tile_srs = 3857, // epsg code of the output tile
   timed = false,
-  width: tile_width = 256,
+  tile_width = 256,
   use_overview = true
 }: {
   bands?: number[];
@@ -48,12 +39,12 @@ export default async function createTile({
   layout?: string;
   method: string | (({ values }: { values: number[] }) => number);
   round?: boolean;
-  height: number;
   pixel_depth?: number;
-  srs?: number;
+  tile_srs?: number;
+  tile_height: number;
+  tile_width: number;
   timed?: boolean | undefined;
   use_overview?: boolean;
-  width: number;
 }) {
   let bbox_in_tile_srs;
 
@@ -180,7 +171,7 @@ export default async function createTile({
       in_data: readResult.data,
       in_bbox: readResult.read_bbox,
       in_layout: "[band][row,column]",
-      in_no_data: await getNoDataNumber(geotiff),
+      in_no_data: get_geotiff_no_data_number(image),
       in_srs: geotiff_srs,
       in_width: readResult.width,
       in_height: readResult.height,

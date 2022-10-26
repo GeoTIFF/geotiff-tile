@@ -46,6 +46,7 @@
   "homepage": "https://github.com/GeoTIFF/geotiff-tile#readme",
   "dependencies": {
     "geotiff-epsg-code": "^0.2.0",
+    "geotiff-no-data": "^0.1.0",
     "geotiff-precise-no-data": "^0.0.1",
     "geotiff-read-bbox": "^1.2.0",
     "geowarp": "^1.7.0",
