@@ -88,6 +88,29 @@
         displayTile({ tile: data, height, width});
       });
 
+      test("pulling empty tile from Harvey COG", async ({ eq }) => {
+        const url = "https://storage.googleapis.com/pdd-stac/disasters/hurricane-harvey/0831/20170831_172754_101c_3b_Visual.tif";
+        const geotiff = await GeoTIFF.fromUrl(url);
+        const { height, width, tile } = await geotiff_tile.createTile({
+          geotiff,
+          // mercator tile at x: 61158, y: 108475, z: 18
+          bbox: [-96.01226806640625, 29.616445727622548, -96.01089477539062, 29.61763959537609],
+          bbox_srs: 4326,
+          layout: "[band][row][column]",
+          method: "near",
+          round: false,
+          timed: true,
+          tile_height: 256,
+          tile_width: 256,
+          tile_srs: 3857,
+          use_overview: true
+        });
+
+        const data = three_to_four_bands({ height, width, tile })
+
+        displayTile({ tile: data, height, width});
+      });
+
       test("pulling tile from 4-band Web Mercator GeoTIFF", async ({ eq }) => {
         const geotiff = await GeoTIFF.fromUrl("./data/gadas.tif");
         const { height, width, tile } = await geotiff_tile.createTile({
