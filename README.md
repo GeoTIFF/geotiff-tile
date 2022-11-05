@@ -44,6 +44,19 @@ createTile({
   // round pixel values to integers
   round,
 
+  // optional
+  // override default nested tile array types
+  tile_array_types: ["Array", "Uint8ClampedArray"],
+
+  // optional
+  // if tile_array_types is not specified, choose
+  // the strategy for deciding which type of arrays
+  // auto - safest and default option, only uses typed array if it's sure there won't be any clamping
+  // geotiff - use the same array types that geotiff.js uses (good if not stretching min or max)
+  // untyped - use only untyped arrays
+  // undefined - same as auto
+  tile_array_types_strategy: "untyped",
+
   // projection of the tile
   // as an EPSG code
   tile_srs: 3857,

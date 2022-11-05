@@ -1,10 +1,17 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="https://unpkg.com/chroma-js"></script>
-    <script src="https://unpkg.com/flug"></script>
-    <script src="https://unpkg.com/geotiff@2.0.5/dist-browser/geotiff.js"></script>
+    <script src="./node_modules/chroma-js/chroma.min.js"></script>
+    <script src="./node_modules/flug/index.js"></script>
+    <script src="./node_modules/geotiff/dist-browser/geotiff.js"></script>
     <script src="./dist/web/geotiff-tile.min.js"></script>
+    <script>
+      window.process = {
+        env: {
+          // TEST_NAME: "pulling tile from 3-band Geographic GeoTIFF"
+        }
+      }
+    </script>
   </head>
   <body>
     <script>
@@ -46,7 +53,7 @@
         const geotiff = await GeoTIFF.fromUrl(url);
         const scale = chroma.scale('Spectral').domain([0, -5000]);
         const { height, width, tile } = await geotiff_tile.createTile({
-          debug_level: 2,
+          debug_level: 0,
           geotiff,
           bbox: [2409289.215, -965456.642, 2577115.317, -835539.341],
           bbox_srs: 3031,
@@ -55,14 +62,17 @@
             if (elevation == null || elevation >= 0) return [0, 0, 0];
             return scale(elevation).rgb();
           },
-          height: 256,
-          layout: "[band][row][column]",
           method: "near",
           pixel_depth: 3,
-          srs: 3031,
-          timed: true,
-          width: 211
+          tile_array_types_strategy: "auto",
+          tile_height: 256,
+          tile_layout: "[band][row][column]",
+          tile_srs: 3031,
+          tile_width: 211,
+          timed: true
         });
+
+        eq(tile[0][0].constructor.name, "Array");
 
         const data = three_to_four_bands({ height, width, tile })
 
@@ -76,12 +86,14 @@
           geotiff,
           // mercator tile at x: 956, y: 1695, z: 12
           bbox: [-95.976562, 29.535232, -95.888671, 29.611673],
-          height: 64,
-          layout: "[band][row][column]",
           method: "near",
+          tile_height: 64,
+          tile_layout: "[band][row][column]",
+          tile_width: 64,
           timed: true,
-          width: 64
         });
+
+        eq(tile[0][0].constructor.name, "Uint8Array");
 
         const data = three_to_four_bands({ height, width, tile })
 
@@ -96,15 +108,17 @@
           // mercator tile at x: 61158, y: 108475, z: 18
           bbox: [-96.01226806640625, 29.616445727622548, -96.01089477539062, 29.61763959537609],
           bbox_srs: 4326,
-          layout: "[band][row][column]",
           method: "near",
           round: false,
           timed: true,
           tile_height: 256,
+          tile_layout: "[band][row][column]",
           tile_width: 256,
           tile_srs: 3857,
           use_overview: true
         });
+
+        eq(tile[0][0].constructor.name, "Uint8Array");
 
         const data = three_to_four_bands({ height, width, tile })
 
@@ -114,32 +128,35 @@
       test("pulling tile from 4-band Web Mercator GeoTIFF", async ({ eq }) => {
         const geotiff = await GeoTIFF.fromUrl("./data/gadas.tif");
         const { height, width, tile } = await geotiff_tile.createTile({
+          debug_level: 0,
           geotiff,
           bbox: [74.35546875, 4.214943141390651, 84.90234375, 13.752724664396988],
-          height: 512,
-          layout: "[row,column,band]",
           method: "near",
-          timed: true,
-          width: 512
+          tile_height: 512,
+          tile_layout: "[row,column,band]",
+          tile_width: 512,
+          timed: true
         });
+        eq(tile.constructor.name, "Uint8Array");
         displayTile({ height, width, tile });
       });
 
       test("pulling tile from 3-band Geographic GeoTIFF", async ({ eq }) => {
         const geotiff = await GeoTIFF.fromUrl("./data/wildfires.tiff");
         const { height, width, tile } = await geotiff_tile.createTile({
-          debug_level: 1,
+          debug_level: 0,
           geotiff,
           bbox: [-122.49755859375, 38.8520508, -120.06958007812499, 40.697299008636755],
           bbox_srs: 4326,
-          height: 512,
-          layout: "[band][row][column]",
           method: "near",
           round: true,
-          srs: 4326,
-          timed: true,
-          width: 512
+          tile_height: 512,
+          tile_layout: "[band][row][column]",
+          tile_srs: 4326,
+          tile_width: 512,
+          timed: true
         });
+        eq(tile[0][0].constructor.name, "Uint8Array");
 
         const data = three_to_four_bands({ height, width, tile })
 

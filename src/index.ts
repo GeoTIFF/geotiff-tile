@@ -17,12 +17,14 @@ export default async function createTile({
   geotiff,
   expr: _expr,
   // fit = false,
-  layout: tile_layout = "[band][row,column]",
   method,
   pixel_depth,
   round,
+  tile_array_types,
   tile_height = 256,
   tile_srs = 3857, // epsg code of the output tile
+  tile_array_types_strategy = "auto",
+  tile_layout = "[band][row,column]",
   timed = false,
   tile_width = 256,
   use_overview = true
@@ -36,12 +38,14 @@ export default async function createTile({
   geotiff: any;
   expr?: ({ pixel }: { pixel: number[] }) => number[];
   // fit?: boolean | undefined;
-  layout?: string;
   method: string | (({ values }: { values: number[] }) => number);
   round?: boolean;
   pixel_depth?: number;
+  tile_array_types?: Parameters<typeof geowarp>[0]["out_array_types"];
+  tile_array_types_strategy?: "auto" | "geotiff" | "untyped" | undefined;
   tile_srs?: number;
   tile_height: number;
+  tile_layout?: string;
   tile_width: number;
   timed?: boolean | undefined;
   use_overview?: boolean;
@@ -114,8 +118,11 @@ export default async function createTile({
     if (debug_level >= 2) console.log("[geotiff-tile] geotiff-read-bbox result is:\n", readResult);
     if (timed) console.log("[geotiff-tile] reading bounding box took " + Math.round(performance.now() - start_read_bbox) + "ms");
 
+    const sourceArrayType = readResult.data[0].constructor.name;
+    if (debug_level >= 2) console.log("[geotiff-tile] sourceArrayType:\n", sourceArrayType);
+
     const [theoretical_min, theoretical_max] = (() => {
-      switch (readResult.data[0].name) {
+      switch (sourceArrayType) {
         case "Uint8Array":
           return [0, 255];
         case "Int8Array":
@@ -161,6 +168,27 @@ export default async function createTile({
 
     // warp result
     const start_geowarp = timed ? performance.now() : 0;
+
+    const array_depth = tile_layout.match(/\[/g)!.length;
+
+    tile_array_types = (() => {
+      if (tile_array_types) {
+        return tile_array_types;
+      } else if (tile_array_types_strategy === "auto") {
+        if (_expr) {
+          return new Array(array_depth - 1).fill("Array");
+        } else {
+          return new Array(array_depth - 1).fill("Array").concat([sourceArrayType]);
+        }
+      } else if (tile_array_types_strategy === "geotiff") {
+        return new Array(array_depth - 1).fill("Array").concat([sourceArrayType]);
+      } else if (tile_array_types_strategy === "untyped") {
+        return new Array(array_depth - 1).fill("Array");
+      }
+      return new Array(array_depth - 1).fill("Array");
+    })();
+    if (debug_level >= 2) console.log("[geotiff-tile] tile_array_types:\n", tile_array_types);
+
     const { data: out_data } = geowarp({
       cutline,
       cutline_srs,
@@ -177,6 +205,7 @@ export default async function createTile({
       in_height: readResult.height,
       method,
       // out_bands: should use if repeated bands in output
+      out_array_types: tile_array_types,
       out_bbox: bbox_in_tile_srs.map(it => Number(it)),
       out_height: tile_height,
       out_layout: tile_layout,
