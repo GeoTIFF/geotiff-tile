@@ -192,7 +192,7 @@ export default async function createTile({
     const { data: out_data } = geowarp({
       cutline,
       cutline_srs,
-      cutline_forward: cutline ? proj4fullyloaded("EPSG:" + cutline_srs, "EPSG:" + tile_srs) : undefined,
+      cutline_forward: cutline ? proj4fullyloaded("EPSG:" + cutline_srs, "EPSG:" + tile_srs).forward : undefined,
       debug_level: debug_level > 1 ? debug_level - 1 : 0,
       forward,
       inverse,
