@@ -162,6 +162,41 @@
 
         displayTile({ tile: data, height, width});
       });
+
+
+      test("geotiff tile crop by cutline", async ({ eq }) => {
+        const geotiff = await GeoTIFF.fromUrl("./data/wildfires.tiff");
+        const { height, width, tile } = await geotiff_tile.createTile({
+          debug_level: 0,
+          geotiff,
+          bbox: [-122.49755859375, 38.8520508, -120.06958007812499, 40.697299008636755],
+          bbox_srs: 4326,
+          method: "near",
+          cutline: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [-121.2835693359375, 39.77467490431838],
+                [-121.2835693359375, 40.697299008636755],
+                [-120.06958007812499, 40.697299008636755],
+                [-120.06958007812499, 39.77467490431838],
+                [-121.2835693359375, 39.77467490431838]
+              ]
+            ]
+          },
+          round: true,
+          tile_height: 512,
+          tile_layout: "[band][row][column]",
+          tile_srs: 4326,
+          tile_width: 512,
+          timed: true
+        });
+        eq(tile[0][0].constructor.name, "Uint8Array");
+
+        const data = three_to_four_bands({ height, width, tile })
+
+        displayTile({ tile: data, height, width});
+      });
     </script>
   </body>
 </html>
