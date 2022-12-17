@@ -41,7 +41,20 @@ export default async function createTile({
   method: string | (({ values }: { values: number[] }) => number);
   round?: boolean;
   pixel_depth?: number;
-  tile_array_types?: Parameters<typeof geowarp>[0]["out_array_types"];
+  tile_array_types?:
+    | ReadonlyArray<
+        | "Array"
+        | "Int8Array"
+        | "Uint8Array"
+        | "Uint8ClampedArray"
+        | "Int16Array"
+        | "Uint16Array"
+        | "Float32Array"
+        | "Float64Array"
+        | "BigInt64Array"
+        | "BigUint64Array"
+      >
+    | undefined;
   tile_array_types_strategy?: "auto" | "geotiff" | "untyped" | undefined;
   tile_srs?: number;
   tile_height: number;
