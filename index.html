@@ -219,14 +219,9 @@
         eq(tile[0].length, width);
         eq(tile[0][0].length, 3);
 
-        tile.forEach(row => {
-          row.forEach(column => {
-            column.push(255);
-          });
-        });
-        tile.flat(2);
+        const data = tile.map(row => row.map(values => [...values, 255] )).flat(2);
 
-        displayTile({ tile, height, width});
+        displayTile({ tile: data, height, width});
       });
     </script>
   </body>
