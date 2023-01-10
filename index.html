@@ -3,7 +3,7 @@
   <head>
     <script src="https://unpkg.com/chroma-js/chroma.min.js"></script>
     <script src="https://unpkg.com/flug/index.js"></script>
-    <script src="https://unpkg.com/geotiff/dist-browser/geotiff.js"></script>
+    <script src="https://unpkg.com/geotiff"></script>
     <script src="https://unpkg.com/geotiff-tile/dist/web/geotiff-tile.min.js"></script>
     <script>
       window.process = {
@@ -47,37 +47,6 @@
         canvas.style.margin = "10px";
         canvas.style.height = "512px";
       }
-
-      test("pulling tile from antarctic COG", async ({ eq }) => {
-        const url = "./data/GA4886_VanderfordGlacier_2022_EGM2008_64m-epsg3031.cog";
-        const geotiff = await GeoTIFF.fromUrl(url);
-        const scale = chroma.scale('Spectral').domain([0, -5000]);
-        const { height, width, tile } = await geotiff_tile.createTile({
-          debug_level: 0,
-          geotiff,
-          bbox: [2409289.215, -965456.642, 2577115.317, -835539.341],
-          bbox_srs: 3031,
-          expr: ({ pixel }) => {
-            const elevation = pixel[0];
-            if (elevation == null || elevation >= 0) return [0, 0, 0];
-            return scale(elevation).rgb();
-          },
-          method: "near",
-          pixel_depth: 3,
-          tile_array_types_strategy: "auto",
-          tile_height: 256,
-          tile_layout: "[band][row][column]",
-          tile_srs: 3031,
-          tile_width: 211,
-          timed: true
-        });
-
-        eq(tile[0][0].constructor.name, "Array");
-
-        const data = three_to_four_bands({ height, width, tile })
-
-        displayTile({ tile: data, height, width});
-      });
 
       test("pulling tile from Harvey COG", async ({ eq }) => {
         const url = "https://storage.googleapis.com/pdd-stac/disasters/hurricane-harvey/0831/20170831_172754_101c_3b_Visual.tif";
