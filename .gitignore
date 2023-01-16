@@ -104,7 +104,9 @@ dist
 .tern-port
 
 pnpm-lock.yaml
+package-lock.json
 data/*cog*
 data/*tif*
 *bak*
 .DS_Store
+

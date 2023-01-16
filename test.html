@@ -163,7 +163,6 @@
         displayTile({ tile: data, height, width});
       });
 
-
       test("geotiff tile crop by cutline", async ({ eq }) => {
         const geotiff = await GeoTIFF.fromUrl("./data/wildfires.tiff");
         const { height, width, tile } = await geotiff_tile.createTile({
@@ -220,6 +219,28 @@
         eq(tile[0][0].length, 3);
 
         const data = tile.map(row => row.map(values => [...values, 255] )).flat(2);
+
+        displayTile({ tile: data, height, width});
+      });
+
+      test("geotiff tile (near-vectorize)", async ({ eq }) => {
+        const geotiff = await GeoTIFF.fromUrl("./data/wildfires.tiff");
+        const { height, width, tile } = await geotiff_tile.createTile({
+          debug_level: 2,
+          geotiff,
+          bbox: [ -122.0361328125, 40.97989806962013, -121.9921875, 41.0130657870063 ],
+          bbox_srs: 4326,
+          method: "near-vectorize",
+          round: true,
+          tile_height: 512,
+          tile_layout: "[band][row][column]",
+          tile_srs: 4326,
+          tile_width: 512,
+          timed: true
+        });
+        eq(tile[0][0].constructor.name, "Uint8Array");
+
+        const data = three_to_four_bands({ height, width, tile })
 
         displayTile({ tile: data, height, width});
       });
