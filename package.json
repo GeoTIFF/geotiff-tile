@@ -1,6 +1,6 @@
 {
   "name": "geotiff-tile",
-  "version": "0.10.3",
+  "version": "0.11.0",
   "description": "Generate a Map Tile from a GeoTIFF File.",
   "main": "./dist/cjs/geotiff-tile.js",
   "module": "./dist/esm/geotiff-tile.js",
