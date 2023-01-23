@@ -27,7 +27,8 @@ export default async function createTile({
   tile_layout = "[band][row,column]",
   timed = false,
   tile_width = 256,
-  use_overview = true
+  use_overview = true,
+  turbo = false
 }: {
   bands?: number[];
   bbox: [number, number, number, number] | Readonly<[number, number, number, number]> | Readonly<[string, string, string, string]>;
@@ -62,6 +63,7 @@ export default async function createTile({
   tile_width: number;
   timed?: boolean | undefined;
   use_overview?: boolean;
+  turbo?: boolean | undefined;
 }) {
   let bbox_in_tile_srs;
 
@@ -228,7 +230,8 @@ export default async function createTile({
       round,
       theoretical_max,
       theoretical_min,
-      expr: _expr
+      expr: _expr,
+      turbo
     });
     if (timed) console.log("[geotiff-tile] geowarp took " + Math.round(performance.now() - start_geowarp) + "ms");
 

@@ -27,10 +27,11 @@
         return data;
       }
 
-      function displayTile({ tile, height, width }) {
+      function displayTile({ id, tile, height, width }) {
         const data = Uint8ClampedArray.from(tile);
         const imageData = new ImageData(data, width, height);
         const canvas = document.createElement("CANVAS");
+        canvas.id = id;
         canvas.height = imageData.height;
         canvas.width = imageData.width;
         const context = canvas.getContext("2d");
@@ -139,6 +140,23 @@
         });
         eq(tile.constructor.name, "Uint8Array");
         displayTile({ height, width, tile });
+      });
+
+      test("pulling tile from 4-band Web Mercator GeoTIFF (turbo)", async ({ eq }) => {
+        const geotiff = await GeoTIFF.fromUrl("./data/gadas.tif");
+        const { height, width, tile } = await geotiff_tile.createTile({
+          debug_level: 0,
+          geotiff,
+          bbox: [74.35546875, 4.214943141390651, 84.90234375, 13.752724664396988],
+          method: "near",
+          tile_height: 512,
+          tile_layout: "[row,column,band]",
+          tile_width: 512,
+          timed: true,
+          turbo: true
+        });
+        eq(tile.constructor.name, "Uint8Array");
+        displayTile({ id: "gadas-turbo", height, width, tile });
       });
 
       test("pulling tile from 3-band Geographic GeoTIFF", async ({ eq }) => {

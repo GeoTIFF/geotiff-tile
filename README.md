@@ -68,6 +68,10 @@ createTile({
   tile_width: 512,
 
   // whether to use overviews if available
-  use_overview
+  use_overview,
+
+  // optional, default is false
+  // enable experimental turbocharging via proj-turbo
+  turbo: false
 })
 ```
