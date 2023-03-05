@@ -8,7 +8,7 @@
     <script>
       window.process = {
         env: {
-          // TEST_NAME: "pulling tile from 3-band Geographic GeoTIFF as layout [row][column][band]"
+          // TEST_NAME: "ycbcr"
         }
       }
     </script>
@@ -258,6 +258,38 @@
         });
         eq(tile[0][0].constructor.name, "Uint8Array");
 
+        const data = three_to_four_bands({ height, width, tile })
+
+        displayTile({ tile: data, height, width});
+      });
+
+      test("ycbcr", async ({ eq }) => {
+        const geotiff = await GeoTIFF.fromUrl("https://maxar-ard-samples.s3.amazonaws.com/v3/australia_vineyards/50/213133231011/2019-10-07/10500100191CD200-visual.tif");
+        console.log("geotiff:", geotiff);
+        const { height, width, tile } = await geotiff_tile.createTile({
+          debug_level: 2,
+          geotiff,
+          bbox: [
+              12802284.9934276,
+              -4026091.1538368035,
+              12807176.963237852,
+              -4023811.776507525
+            ],
+          bbox_srs: 3857,
+          method: "near-vectorize",
+          round: true,
+          tile_height: 60,
+          tile_layout: "[band][row][column]",
+          tile_srs: 3857,
+          tile_width: 128,
+          timed: true,
+          use_overview: true,
+          turbo: false
+        });
+        eq(tile[0][0].constructor.name, "Uint8Array");
+        eq(tile.length, 3);
+
+        console.log("tile:", tile)
         const data = three_to_four_bands({ height, width, tile })
 
         displayTile({ tile: data, height, width});

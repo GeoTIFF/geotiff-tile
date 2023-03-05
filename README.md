@@ -27,6 +27,10 @@ createTile({
   // set to higher number to increase logging
   debug_level = 0,
 
+  // how many points to add to each side of the bounding box if reprojecting
+  // optional, default is 100
+  density = 100,
+
   // instance of geotiff.js
   geotiff,
 

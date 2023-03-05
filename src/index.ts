@@ -14,6 +14,7 @@ export default async function createTile({
   cutline,
   cutline_srs = 4326,
   debug_level = 0,
+  density = 100,
   geotiff,
   expr: _expr,
   // fit = false,
@@ -36,6 +37,7 @@ export default async function createTile({
   cutline?: any;
   cutline_srs?: number;
   debug_level?: number;
+  density?: number | undefined;
   geotiff: any;
   expr?: ({ pixel }: { pixel: number[] }) => number[];
   // fit?: boolean | undefined;
@@ -99,6 +101,7 @@ export default async function createTile({
       } else {
         return reproject_bbox({
           bbox: bbox_nums,
+          density,
           from: bbox_srs,
           to: tile_srs
         });
@@ -119,9 +122,7 @@ export default async function createTile({
     // const read_bbox = snapped.bbox_in_coordinate_system;
 
     // read data from geotiff
-    const start_read_bbox = timed ? performance.now() : 0;
-    const readResult = await readBoundingBox({
-      // bbox: read_bbox,
+    const readBoundingBoxOptions = {
       bbox: bbox_in_tile_srs,
       debugLevel: debug_level,
       srs: tile_srs,
@@ -129,7 +130,10 @@ export default async function createTile({
       use_overview,
       target_height: tile_height,
       target_width: tile_width
-    });
+    };
+    if (debug_level >= 2) console.log("[geotiff-tile] calling readBoundingBox with:\n", readBoundingBoxOptions);
+    const start_read_bbox = timed ? performance.now() : 0;
+    const readResult = await readBoundingBox(readBoundingBoxOptions);
     if (debug_level >= 2) console.log("[geotiff-tile] geotiff-read-bbox result is:\n", readResult);
     if (timed) console.log("[geotiff-tile] reading bounding box took " + Math.round(performance.now() - start_read_bbox) + "ms");
 
