@@ -8,7 +8,8 @@
     <script>
       window.process = {
         env: {
-          // TEST_NAME: "ycbcr"
+          TEST_TIMED: true,
+          // TEST_NAME: "pulling tile from 4-band Web Mercator GeoTIFF"
         }
       }
     </script>
@@ -132,31 +133,21 @@
           debug_level: 0,
           geotiff,
           bbox: [74.35546875, 4.214943141390651, 84.90234375, 13.752724664396988],
+          expr: async ({ pixel: [r, g, b, a] }) => b > 150 ? [223, 255, 0] : [r, g, b],
           method: "near",
+          tile_array_types: ["Array", "Array", "Uint8Array"],
           tile_height: 512,
-          tile_layout: "[row,column,band]",
-          tile_width: 512,
-          timed: true
-        });
-        eq(tile.constructor.name, "Uint8Array");
-        displayTile({ height, width, tile });
-      });
-
-      test("pulling tile from 4-band Web Mercator GeoTIFF (turbo)", async ({ eq }) => {
-        const geotiff = await GeoTIFF.fromUrl("./data/gadas.tif");
-        const { height, width, tile } = await geotiff_tile.createTile({
-          debug_level: 0,
-          geotiff,
-          bbox: [74.35546875, 4.214943141390651, 84.90234375, 13.752724664396988],
-          method: "near",
-          tile_height: 512,
-          tile_layout: "[row,column,band]",
+          tile_layout: "[band][row][column]",
+          tile_resolution: 0.25,
           tile_width: 512,
           timed: true,
           turbo: true
         });
-        eq(tile.constructor.name, "Uint8Array");
-        displayTile({ id: "gadas-turbo", height, width, tile });
+        eq(tile[0][0].constructor.name, "Uint8Array");
+
+        const data = three_to_four_bands({ height, width, tile })
+
+        displayTile({ height, width, tile: data });
       });
 
       test("pulling tile from 3-band Geographic GeoTIFF", async ({ eq }) => {

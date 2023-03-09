@@ -10,7 +10,7 @@ npm install geotiff-tile
 ```js
 import { createTile } from "geotiff-tile";
 
-createTile({
+await createTile({
   // bounding box of tile in format [xmin, ymin, xmax, ymax]
   bbox: [-122.49755859375, 38.8520508, -120.06958007812499, 40.697299008636755],
 
@@ -70,6 +70,10 @@ createTile({
 
   // width of tile in pixels
   tile_width: 512,
+
+  // resolution of the tile
+  // from 0 (lowest) to 1 (highest)
+  tile_resolution: 0.5,
 
   // whether to use overviews if available
   use_overview,

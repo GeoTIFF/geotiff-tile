@@ -26,8 +26,9 @@ export default async function createTile({
   tile_srs = 3857, // epsg code of the output tile
   tile_array_types_strategy = "auto",
   tile_layout = "[band][row,column]",
-  timed = false,
+  tile_resolution = [1, 1],
   tile_width = 256,
+  timed = false,
   use_overview = true,
   turbo = false
 }: {
@@ -62,6 +63,7 @@ export default async function createTile({
   tile_srs?: number;
   tile_height: number;
   tile_layout?: string;
+  tile_resolution?: number | number[] | [number, number] | Readonly<[number, number]> | undefined;
   tile_width: number;
   timed?: boolean | undefined;
   use_overview?: boolean;
@@ -195,7 +197,9 @@ export default async function createTile({
         return tile_array_types;
       } else if (tile_array_types_strategy === "auto") {
         if (_expr) {
-          return new Array(array_depth - 1).fill("Array");
+          // ex: [row,column,band] -> ["Array"]
+          // ex: [band][row,column] -> ["Array", "Array"]
+          return new Array(array_depth).fill("Array");
         } else {
           return new Array(array_depth - 1).fill("Array").concat([sourceArrayType]);
         }
@@ -208,7 +212,7 @@ export default async function createTile({
     })();
     if (debug_level >= 2) console.log("[geotiff-tile] tile_array_types:\n", tile_array_types);
 
-    const { data: out_data } = geowarp({
+    const { data: out_data } = await geowarp({
       cutline,
       cutline_srs,
       cutline_forward: cutline ? proj4fullyloaded("EPSG:" + cutline_srs, "EPSG:" + tile_srs).forward : undefined,
@@ -225,10 +229,11 @@ export default async function createTile({
       method,
       // out_bands: should use if repeated bands in output
       out_array_types: tile_array_types,
-      out_bbox: bbox_in_tile_srs.map(it => Number(it)),
+      out_bbox: bbox_in_tile_srs.map((it: number) => Number(it)),
       out_height: tile_height,
       out_layout: tile_layout,
       out_pixel_depth: pixel_depth,
+      out_resolution: typeof tile_resolution === "number" ? [tile_resolution, tile_resolution] : tile_resolution,
       out_srs: tile_srs,
       out_width: tile_width,
       round,
