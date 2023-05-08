@@ -4,7 +4,7 @@
     <script src="./node_modules/chroma-js/chroma.min.js"></script>
     <script src="./node_modules/flug/index.js"></script>
     <script src="./node_modules/geotiff/dist-browser/geotiff.js"></script>
-    <script src="./dist/web/geotiff-tile.min.js"></script>
+    <script src="./dist/web/geotiff-tile.js"></script>
     <script>
       window.process = {
         env: {
@@ -49,6 +49,35 @@
         canvas.style.margin = "10px";
         canvas.style.height = "512px";
       }
+
+      test("displaying warped geotiff", async ({ eq }) => {
+        const url = "./data/umbra_mount_yasur.tiff";
+        const geotiff = await GeoTIFF.fromUrl(url);
+        const { height, width, tile } = await geotiff_tile.createTile({
+          debug_level: 0,
+          geotiff,
+
+          // bbox for https://c.tile.openstreetmap.org/14/15903/9098.png
+          bbox: [169.43115234375, -19.53908413550933, 169.453125, -19.518375478601566],
+          bbox_srs: 4326,
+          debug_level: 10,
+          expr: ({ pixel }) => [pixel[0], pixel[0], pixel[0]],
+          method: "near",
+          pixel_depth: 3,
+          tile_array_types_strategy: "auto",
+          tile_height: 512,
+          tile_layout: "[band][row][column]",
+          tile_srs: 4326,
+          tile_width: 512,
+          timed: true
+        });
+
+        eq(tile[0][0].constructor.name, "Array");
+
+        const data = three_to_four_bands({ height, width, tile })
+
+        displayTile({ tile: data, height, width});
+      });
 
       test("pulling tile from antarctic COG", async ({ eq }) => {
         const url = "./data/GA4886_VanderfordGlacier_2022_EGM2008_64m-epsg3031.cog";
