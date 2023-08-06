@@ -212,7 +212,7 @@ export default async function createTile({
     })();
     if (debug_level >= 2) console.log("[geotiff-tile] tile_array_types:\n", tile_array_types);
 
-    const { data: out_data } = await geowarp({
+    const { data: out_data, ...extra } = await geowarp({
       cutline,
       cutline_srs,
       cutline_forward: cutline ? proj4fullyloaded("EPSG:" + cutline_srs, "EPSG:" + tile_srs).forward : undefined,
@@ -230,7 +230,7 @@ export default async function createTile({
       method,
       // out_bands: should use if repeated bands in output
       out_array_types: tile_array_types,
-      out_bbox: bbox_in_tile_srs.map((it: number) => Number(it)),
+      out_bbox: bbox_in_tile_srs.map((it: number | string) => Number(it)),
       out_height: tile_height,
       out_layout: tile_layout,
       out_pixel_depth: pixel_depth,
@@ -250,7 +250,8 @@ export default async function createTile({
     return {
       height: tile_height,
       tile: out_data,
-      width: tile_width
+      width: tile_width,
+      extra // extra metadata from geowarp
     };
   } catch (error) {
     console.log("[geotiff-tile] failed to create tile");
