@@ -12,17 +12,19 @@
     "require": "./dist/cjs/geotiff-tile.js"
   },
   "files": [
-    "./dist/cjs/geotiff-tile.js",
-    "./dist/esm/geotiff-tile.js",
-    "./dist/web/geotiff-tile.min.js",
-    "./dist/web/geotiff-tile.min.js.map",
-    "./src/index.ts"
+    "dist/cjs/geotiff-tile.js",
+    "dist/esm/geotiff-tile.js",
+    "dist/web/geotiff-tile.js",
+    "dist/web/geotiff-tile.js.map",
+    "dist/web/geotiff-tile.min.js",
+    "dist/web/geotiff-tile.min.js.map",
+    "src/index.ts"
   ],
   "scripts": {
     "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:web && npm run build:web:dev",
     "build:cjs": "npx babel --plugins @babel/plugin-transform-modules-commonjs --plugins @babel/plugin-proposal-export-namespace-from ./dist/esm/geotiff-tile.js --out-file ./dist/cjs/geotiff-tile.js && echo '\nmodule.exports = exports.default; module.exports.default = exports.default;' >> ./dist/cjs/geotiff-tile.js",
     "build:esm": "npx babel --extensions \".ts\" --ignore '**/test.ts' --ignore '**/index.md' --plugins @babel/plugin-proposal-export-namespace-from --presets @babel/preset-typescript ./src/index.ts --out-file ./dist/esm/geotiff-tile.js && rm -fr ./dist/*/*bak*",
-    "build:web": "npx webpack --config=webpack.config.js",
+    "build:web": "webpack --config=webpack.config.js",
     "build:web:dev": "GEOTIFF_TILE_WEBPACK_MODE=development GEOTIFF_TILE_WEBPACK_OUTPUT_FILENAME=geotiff-tile.js npx webpack --config=webpack.config.js",
     "build:test": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:web:dev",
     "clean": "npx rimraf dist",
