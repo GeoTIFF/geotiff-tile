@@ -109,4 +109,4 @@ data/*cog*
 data/*tif*
 *bak*
 .DS_Store
-
+test-output/*.png
