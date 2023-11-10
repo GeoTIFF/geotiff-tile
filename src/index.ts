@@ -2,8 +2,11 @@ import geowarp from "geowarp";
 import readBoundingBox from "geotiff-read-bbox";
 import get_geotiff_epsg_code from "geotiff-epsg-code";
 import get_geotiff_no_data_number from "geotiff-no-data";
+import GT from "geotiff-geotransform";
+import Geotransform from "geoaffine/Geotransform.js";
 // import { rawToRgb } from "pixel-utils";
 import proj4fullyloaded from "proj4-fully-loaded";
+import bboxfns_reproject from "bbox-fns/reproject.js";
 import reproject_bbox from "reproject-bbox";
 // import snap_bbox from "snap-bbox";
 
@@ -77,8 +80,10 @@ export default async function createTile({
     if (!bbox) throw new Error("[geotiff-tile] you must provide bbox");
 
     const image = await geotiff.getImage(0);
+    const image_height = image.getHeight();
 
     const bbox_nums = [Number(bbox[0]), Number(bbox[1]), Number(bbox[2]), Number(bbox[3])] as const;
+    if (debug_level >= 1) console.log("bbox_nums:", bbox_nums);
 
     // parse data from GeoTIFF
     const start_get_geotiff_epsg_code = timed ? performance.now() : 0;
@@ -100,7 +105,34 @@ export default async function createTile({
     bbox_in_tile_srs = (() => {
       if (tile_srs === bbox_srs) {
         return bbox;
+      } else if (bbox_srs === "simple") {
+        // if bbox_srs is simple, use srs of geotiff
+        const geotransform = GT(image);
+        const affine = Geotransform(geotransform);
+
+        const [xmin, ymin, xmax, ymax] = bbox_nums;
+
+        // flip y-axis
+        const image_bbox = [xmin, image_height - ymax, xmax, image_height - ymin];
+
+        const bbox_in_geotiff_srs = bboxfns_reproject(image_bbox, affine.forward, {
+          async: false,
+          density: 0 // standard 6-param geoaffine transformations won't lead to curved lines
+        });
+        if (debug_level >= 1) console.log("bbox_in_geotiff_srs:", bbox_in_geotiff_srs);
+
+        if (geotiff_srs === tile_srs) {
+          return bbox_in_geotiff_srs;
+        } else {
+          return reproject_bbox({
+            bbox: bbox_in_geotiff_srs,
+            density,
+            from: geotiff_srs,
+            to: tile_srs
+          });
+        }
       } else {
+        if (debug_level >= 1) console.log(`reprojecting bbox from "${bbox_srs}" to "${tile_srs}"`);
         return reproject_bbox({
           bbox: bbox_nums,
           density,
@@ -124,15 +156,33 @@ export default async function createTile({
     // const read_bbox = snapped.bbox_in_coordinate_system;
 
     // read data from geotiff
-    const readBoundingBoxOptions = {
-      bbox: bbox_in_tile_srs,
-      debugLevel: debug_level,
-      srs: tile_srs,
-      geotiff,
-      use_overview,
-      target_height: tile_height,
-      target_width: tile_width
-    };
+    const readBoundingBoxOptions = (() => {
+      if (bbox_srs === "simple" && tile_srs === geotiff_srs) {
+        // not reprojecting the bbox, so just use the simple image coordinates
+        // this helps avoid floating point arithmetic imprecision with using
+        // the result from the affine transformation
+        return {
+          bbox: bbox_nums,
+          debugLevel: debug_level,
+          srs: "simple",
+          geotiff,
+          use_overview,
+          target_height: tile_height,
+          target_width: tile_width
+        };
+      } else {
+        return {
+          bbox: bbox_in_tile_srs,
+          debugLevel: debug_level,
+          srs: tile_srs,
+          geotiff,
+          use_overview,
+          target_height: tile_height,
+          target_width: tile_width
+        };
+      }
+    })();
+
     if (debug_level >= 2) console.log("[geotiff-tile] calling readBoundingBox with:\n", readBoundingBoxOptions);
     const start_read_bbox = timed ? performance.now() : 0;
     const readResult = await readBoundingBox(readBoundingBoxOptions);
@@ -246,6 +296,9 @@ export default async function createTile({
     if (timed) console.log("[geotiff-tile] geowarp took " + Math.round(performance.now() - start_geowarp) + "ms");
 
     if (timed) console.log("[geotiff-tile] took " + Math.round(performance.now() - start_time) + "ms");
+
+    // @ts-ignore
+    if (debug_level >= 1) extra.readResult = readResult;
 
     return {
       height: tile_height,

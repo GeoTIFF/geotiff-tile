@@ -3,15 +3,15 @@ const path = require("path");
 
 module.exports = (env, argv) => {
   const config = {
-    entry: "./dist/esm/geotiff-tile.js",
+    entry: "./dist/esm/geotiff-tile.mjs",
     mode: "production",
     devtool: "source-map",
     output: {
       filename: `geotiff-tile.min.js`,
       library: "geotiff-tile",
       libraryTarget: "umd",
-      path: path.resolve(__dirname, "dist/web"),
-    },
+      path: path.resolve(__dirname, "dist/web")
+    }
   };
 
   // inject environmental variables

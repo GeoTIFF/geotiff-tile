@@ -4,11 +4,13 @@
     <script src="https://unpkg.com/chroma-js/chroma.min.js"></script>
     <script src="https://unpkg.com/flug/index.js"></script>
     <script src="https://unpkg.com/geotiff"></script>
-    <script src="https://unpkg.com/geotiff-tile/dist/web/geotiff-tile.min.js"></script>
+    <!-- <script src="https://unpkg.com/geotiff-tile/dist/web/geotiff-tile.min.js"></script> -->
+    <script src="./dist/web/geotiff-tile.js"></script>
     <script>
       window.process = {
         env: {
           // TEST_NAME: "pulling tile from 3-band Geographic GeoTIFF as layout [row][column][band]"
+          // TEST_NAME: "simple"
         }
       }
     </script>
@@ -21,6 +23,18 @@
           for (let r = 0; r < height; r++) {
             for (let c = 0; c < width; c++) {
               data[(r * 4 * width) + (4 * c) + b] = tile[b][r][c];
+            }
+          }
+        }
+        return data;
+      }
+
+      function three_to_four_bands_b_rc({ tile, height, width }) {
+        const data = new Array(4 * height * width).fill(255);
+        for (let b = 0; b <= 2; b++) {
+          for (let r = 0; r < height; r++) {
+            for (let c = 0; c < width; c++) {
+              data[(r * 4 * width) + (4 * c) + b] = tile[b][r * width + c];
             }
           }
         }
@@ -61,6 +75,63 @@
           tile_width: 64,
           timed: true,
         });
+
+        eq(tile[0][0].constructor.name, "Uint8Array");
+
+        const data = three_to_four_bands({ height, width, tile })
+
+        displayTile({ tile: data, height, width});
+      });
+
+      // test("simple", async ({ eq }) => {
+      //   const url = "./data/gadas.tif";
+      //   const geotiff = await GeoTIFF.fromUrl(url);
+      //   const { height, width, tile } = await geotiff_tile.createTile({
+      //     geotiff,
+      //     bbox: [256, 256, 512, 512],
+      //     bbox_srs: "simple",
+      //     debug_level: 10,
+      //     method: "near",
+      //     tile_height: 512,
+      //     tile_layout: "[band][row][column]",
+      //     tile_width: 512,
+      //     timed: true,
+      //   });
+      //   console.log({height, width, tile});
+
+      //   console.log("set of values:", new Set(tile.flat(1).map(arr => Array.from(arr)).flat(1)));
+
+      //   eq(tile[0][0].constructor.name, "Uint8Array");
+
+      //   const data = three_to_four_bands({ height, width, tile })
+
+      //   displayTile({ tile: data, height, width});
+      // });
+
+      test("simple", async ({ eq }) => {
+        const url = "./data/wildfires.tiff";
+        const geotiff = await GeoTIFF.fromUrl(url);
+        const image = await geotiff.getImage();
+        const image_height = image.getHeight(); // 784
+        const image_width = image.getWidth(); // 1052
+
+        const { height, width, tile, extra } = await geotiff_tile.createTile({
+          geotiff,
+          bbox: [0, 0, 512, 784 + 200],
+          bbox_srs: "simple",
+          debug_level: 10,
+          method: "near",
+          tile_height: 512,
+          tile_layout: "[band][row][column]",
+          tile_width: 512,
+          timed: true,
+        });
+
+        const { readResult } = extra;
+
+        const rawdata = three_to_four_bands_b_rc({ height: readResult.height, width: readResult.width, tile: readResult.data });
+
+        displayTile({ height: extra.readResult.height, width: extra.readResult.width, tile: rawdata });
 
         eq(tile[0][0].constructor.name, "Uint8Array");
 

@@ -1,12 +1,12 @@
 # geotiff-tile
-Generate a Map Tile from a GeoTIFF File.
+> Generate a Map Tile from a GeoTIFF File.
 
 ## install
 ```bash
 npm install geotiff-tile
 ```
 
-## usage
+## basic usage
 ```js
 import { createTile } from "geotiff-tile";
 
@@ -81,5 +81,18 @@ await createTile({
   // optional, default is false
   // enable experimental turbocharging via proj-turbo
   turbo: false
+})
+```
+
+## advanced usage
+### Image Pixel Coordinates and Simple SRS
+You can also select pixels using a "simple" spatial reference system where the bottom left of your data
+is the origin [0, 0] and the top-right corner is [width, height].  This is inspired by [Leaflet's Simple CRS](https://leafletjs.com/examples/crs-simple/crs-simple.html).
+```js
+await createTile({
+  bbox: [128, 656, 144, 672],
+  bbox_srs: "simple",
+
+  // rest is the same
 })
 ```

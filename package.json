@@ -3,17 +3,18 @@
   "version": "0.16.1",
   "description": "Generate a Map Tile from a GeoTIFF File.",
   "main": "./dist/cjs/geotiff-tile.js",
-  "module": "./dist/esm/geotiff-tile.js",
+  "module": "./dist/esm/geotiff-tile.mjs",
   "jsdelivr": "./dist/web/geotiff-tile.min.js",
   "unpkg": "./dist/web/geotiff-tile.min.js",
   "types": "./src/index.ts",
   "exports": {
-    "import": "./dist/esm/geotiff-tile.js",
+    "import": "./dist/esm/geotiff-tile.mjs",
     "require": "./dist/cjs/geotiff-tile.js"
   },
   "files": [
     "dist/cjs/geotiff-tile.js",
     "dist/esm/geotiff-tile.js",
+    "dist/esm/geotiff-tile.mjs",
     "dist/web/geotiff-tile.js",
     "dist/web/geotiff-tile.js.map",
     "dist/web/geotiff-tile.min.js",
@@ -22,17 +23,17 @@
   ],
   "scripts": {
     "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:web && npm run build:web:dev",
-    "build:cjs": "npx babel --plugins @babel/plugin-transform-modules-commonjs --plugins @babel/plugin-proposal-export-namespace-from ./dist/esm/geotiff-tile.js --out-file ./dist/cjs/geotiff-tile.js && echo '\nmodule.exports = exports.default; module.exports.default = exports.default;' >> ./dist/cjs/geotiff-tile.js",
-    "build:esm": "npx babel --extensions \".ts\" --ignore '**/test.ts' --ignore '**/index.md' --plugins @babel/plugin-proposal-export-namespace-from --presets @babel/preset-typescript ./src/index.ts --out-file ./dist/esm/geotiff-tile.js && rm -fr ./dist/*/*bak*",
+    "build:cjs": "npx babel --plugins @babel/plugin-transform-modules-commonjs --plugins @babel/plugin-proposal-export-namespace-from ./dist/esm/geotiff-tile.mjs --out-file ./dist/cjs/geotiff-tile.js && echo '\nmodule.exports = exports.default; module.exports.default = exports.default;' >> ./dist/cjs/geotiff-tile.js",
+    "build:esm": "npx babel --extensions \".ts\" --ignore '**/test.ts' --ignore '**/index.md' --plugins @babel/plugin-proposal-export-namespace-from --presets @babel/preset-typescript ./src/index.ts --out-file ./dist/esm/geotiff-tile.mjs && rm -fr ./dist/*/*bak* && cp ./dist/esm/geotiff-tile.mjs ./dist/esm/geotiff-tile.js",
     "build:web": "webpack --config=webpack.config.js",
     "build:web:dev": "GEOTIFF_TILE_WEBPACK_MODE=development GEOTIFF_TILE_WEBPACK_OUTPUT_FILENAME=geotiff-tile.js npx webpack --config=webpack.config.js",
     "build:test": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:web:dev",
-    "clean": "npx rimraf dist",
-    "format": "npx prettier --arrow-parens=avoid --print-width=160 --trailing-comma=none --write src/index.ts",
+    "clean": "npx rimraf dist && npx rimraf ./test-output/*.png",
+    "format": "npx prettier --arrow-parens=avoid --print-width=160 --trailing-comma=none --write src/index.ts *.*js",
     "prepublish": "npm run format && npm run build && npm run test",
     "serve": "npx srvd --debug",
     "setup": "cd data && ./setup.sh",
-    "test": "echo 'no automated tests'"
+    "test": "node ./test.mjs"
   },
   "repository": {
     "type": "git",
@@ -51,7 +52,7 @@
   "dependencies": {
     "geotiff-epsg-code": "^0.3.1",
     "geotiff-no-data": "^0.2.0",
-    "geotiff-read-bbox": "^2.0.2",
+    "geotiff-read-bbox": "^2.1.0",
     "geowarp": "^1.23.0",
     "pixel-utils": "^0.9.0",
     "proj4": "^2.9.0",
@@ -72,6 +73,7 @@
     "snap-bbox": "^0.5.0",
     "srvd": "^0.6.0",
     "webpack": "^5.88.2",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "write-image": "^0.2.0"
   }
 }
