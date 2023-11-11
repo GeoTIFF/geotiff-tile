@@ -85,6 +85,17 @@ await createTile({
 ```
 
 ## advanced usage
+### Over-riding geotiff srs
+If for some reason geotiff-tile can't parse the correct projection from your geotiff, you can manually
+specify the projection via the geotiff_srs parameter.
+```js
+await createTile({
+  geotiff,
+  geotiff_srs: 3031,
+  // rest is the same
+})
+```
+
 ### Image Pixel Coordinates and Simple SRS
 You can also select pixels using a "simple" spatial reference system where the bottom left of your data
 is the origin [0, 0] and the top-right corner is [width, height].  This is inspired by [Leaflet's Simple CRS](https://leafletjs.com/examples/crs-simple/crs-simple.html).

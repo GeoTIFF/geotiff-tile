@@ -20,12 +20,14 @@ test("simple", async ({ eq }) => {
 
   const { height, width, tile, extra } = await createTile({
     geotiff,
+    geotiff_srs: "simple",
     bbox: [0, 0, 512, image_height + 200],
     bbox_srs: "simple",
     debug_level: 10,
     method: "near",
     tile_height: 512,
     tile_layout: "[band][row][column]",
+    tile_srs: "simple",
     tile_width: 512,
     timed: true
   });

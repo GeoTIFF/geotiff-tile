@@ -19,6 +19,7 @@ export default async function createTile({
   debug_level = 0,
   density = 100,
   geotiff,
+  geotiff_srs,
   expr: _expr,
   // fit = false,
   method,
@@ -43,6 +44,7 @@ export default async function createTile({
   debug_level?: number;
   density?: number | undefined;
   geotiff: any;
+  geotiff_srs?: number | string | undefined;
   expr?: ({ pixel }: { pixel: number[] }) => number[];
   // fit?: boolean | undefined;
   method: string | (({ values }: { values: number[] }) => number);
@@ -87,7 +89,7 @@ export default async function createTile({
 
     // parse data from GeoTIFF
     const start_get_geotiff_epsg_code = timed ? performance.now() : 0;
-    const geotiff_srs = await get_geotiff_epsg_code(geotiff);
+    if (!geotiff_srs) geotiff_srs = await get_geotiff_epsg_code(geotiff);
     if (timed) console.log("[geotiff-tile] getting epsg code took " + Math.round(performance.now() - start_get_geotiff_epsg_code) + "ms");
     if (debug_level >= 1) console.log("geotiff_srs:", geotiff_srs);
 
@@ -224,7 +226,13 @@ export default async function createTile({
       cutline_srs = 4326;
     }
 
-    const { forward, inverse } = proj4fullyloaded("EPSG:" + geotiff_srs, "EPSG:" + tile_srs);
+    let forward, inverse;
+    if (geotiff_srs !== tile_srs) {
+      ({ forward, inverse } = proj4fullyloaded(
+        typeof geotiff_srs === "number" ? "EPSG:" + geotiff_srs : geotiff_srs,
+        typeof tile_srs === "number" ? "EPSG:" + tile_srs : tile_srs
+      ));
+    }
 
     // if (fit && !_expr) {
     //   _expr = rawToRgb({
