@@ -65,7 +65,7 @@ export default async function createTile({
       >
     | undefined;
   tile_array_types_strategy?: "auto" | "geotiff" | "untyped" | undefined;
-  tile_srs?: number;
+  tile_srs?: number | string;
   tile_height: number;
   tile_layout?: string;
   tile_resolution?: number | number[] | [number, number] | Readonly<[number, number]> | undefined;
@@ -87,11 +87,12 @@ export default async function createTile({
     const bbox_nums = [Number(bbox[0]), Number(bbox[1]), Number(bbox[2]), Number(bbox[3])] as const;
     if (debug_level >= 1) console.log("bbox_nums:", bbox_nums);
 
-    // parse data from GeoTIFF
-    const start_get_geotiff_epsg_code = timed ? performance.now() : 0;
-    if (!geotiff_srs) geotiff_srs = await get_geotiff_epsg_code(geotiff);
-    if (timed) console.log("[geotiff-tile] getting epsg code took " + Math.round(performance.now() - start_get_geotiff_epsg_code) + "ms");
-    if (debug_level >= 1) console.log("geotiff_srs:", geotiff_srs);
+    if (!geotiff_srs) {
+      const start_get_geotiff_epsg_code = timed ? performance.now() : 0;
+      geotiff_srs = await get_geotiff_epsg_code(geotiff);
+      if (timed) console.log("[geotiff-tile] parsing epsg code took " + Math.round(performance.now() - start_get_geotiff_epsg_code) + "ms");
+    }
+    if (debug_level >= 1) console.log("[geotiff-tile] geotiff_srs:", geotiff_srs);
 
     if (!geotiff_srs) {
       throw new Error(
@@ -270,7 +271,11 @@ export default async function createTile({
     })();
     if (debug_level >= 2) console.log("[geotiff-tile] tile_array_types:\n", tile_array_types);
 
-    const { data: out_data, ...extra } = await geowarp({
+    const bbox_in_tile_srs_num = bbox_in_tile_srs.map((it: number | string) => Number(it));
+
+    const out_srs = tile_srs;
+
+    const geowarp_options = {
       cutline,
       cutline_srs,
       cutline_forward: cutline ? proj4fullyloaded("EPSG:" + cutline_srs, "EPSG:" + tile_srs).forward : undefined,
@@ -278,8 +283,9 @@ export default async function createTile({
       forward,
       inverse,
       in_data: readResult.data,
-      in_bbox: readResult.bbox,
-      in_geotransform: readResult.geotransform,
+      in_bbox: out_srs === "simple" ? readResult.simple_bbox : readResult.bbox,
+      // in_geotransform is only necessary if using skewed or rotated in_data
+      in_geotransform: out_srs === "simple" ? null : readResult.geotransform,
       in_layout: "[band][row,column]",
       in_no_data: get_geotiff_no_data_number(image),
       in_srs: geotiff_srs,
@@ -288,19 +294,22 @@ export default async function createTile({
       method,
       // out_bands: should use if repeated bands in output
       out_array_types: tile_array_types,
-      out_bbox: bbox_in_tile_srs.map((it: number | string) => Number(it)),
+      out_bbox: bbox_in_tile_srs_num,
       out_height: tile_height,
       out_layout: tile_layout,
       out_pixel_depth: pixel_depth,
       out_resolution: typeof tile_resolution === "number" ? [tile_resolution, tile_resolution] : tile_resolution,
-      out_srs: tile_srs,
+      out_srs,
       out_width: tile_width,
       round,
       theoretical_max,
       theoretical_min,
       expr: _expr,
       turbo
-    });
+    };
+    if (debug_level >= 2) console.log("[geotiff-tile] geowarp_options:\n", geowarp_options);
+
+    const { data: out_data, ...extra } = await geowarp(geowarp_options);
     if (timed) console.log("[geotiff-tile] geowarp took " + Math.round(performance.now() - start_geowarp) + "ms");
 
     if (timed) console.log("[geotiff-tile] took " + Math.round(performance.now() - start_time) + "ms");
