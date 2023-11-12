@@ -23,8 +23,8 @@
   ],
   "scripts": {
     "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:web && npm run build:web:dev",
-    "build:cjs": "npx babel --plugins @babel/plugin-transform-modules-commonjs --plugins @babel/plugin-proposal-export-namespace-from ./dist/esm/geotiff-tile.mjs --out-file ./dist/cjs/geotiff-tile.js && echo '\nmodule.exports = exports.default; module.exports.default = exports.default;' >> ./dist/cjs/geotiff-tile.js",
-    "build:esm": "npx babel --extensions \".ts\" --ignore '**/test.ts' --ignore '**/index.md' --plugins @babel/plugin-proposal-export-namespace-from --presets @babel/preset-typescript ./src/index.ts --out-file ./dist/esm/geotiff-tile.mjs && rm -fr ./dist/*/*bak* && cp ./dist/esm/geotiff-tile.mjs ./dist/esm/geotiff-tile.js",
+    "build:cjs": "npx babel --plugins @babel/plugin-transform-modules-commonjs --plugins @babel/plugin-transform-export-namespace-from ./dist/esm/geotiff-tile.mjs --out-file ./dist/cjs/geotiff-tile.js && echo '\nmodule.exports = exports.default; module.exports.default = exports.default;' >> ./dist/cjs/geotiff-tile.js",
+    "build:esm": "npx babel --extensions \".ts\" --ignore '**/test.ts' --ignore '**/index.md' --plugins @babel/plugin-transform-export-namespace-from --presets @babel/preset-typescript ./src/index.ts --out-file ./dist/esm/geotiff-tile.mjs && rm -fr ./dist/*/*bak* && cp ./dist/esm/geotiff-tile.mjs ./dist/esm/geotiff-tile.js",
     "build:web": "webpack --config=webpack.config.js",
     "build:web:dev": "GEOTIFF_TILE_WEBPACK_MODE=development GEOTIFF_TILE_WEBPACK_OUTPUT_FILENAME=geotiff-tile.js npx webpack --config=webpack.config.js",
     "build:test": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:web:dev",
@@ -53,7 +53,7 @@
     "geotiff-epsg-code": "^0.3.1",
     "geotiff-no-data": "^0.2.0",
     "geotiff-read-bbox": "^2.1.1",
-    "geowarp": "^1.23.0",
+    "geowarp": "^1.23.1",
     "pixel-utils": "^0.9.0",
     "proj4": "^2.9.2",
     "proj4-fully-loaded": "^0.2.0",
@@ -62,7 +62,7 @@
   "devDependencies": {
     "@babel/cli": "^7.23.0",
     "@babel/core": "^7.23.3",
-    "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
+    "@babel/plugin-transform-export-namespace-from": "^7.23.3",
     "@babel/plugin-transform-modules-commonjs": "^7.23.3",
     "@babel/preset-typescript": "^7.23.3",
     "chroma-js": "^2.4.2",
