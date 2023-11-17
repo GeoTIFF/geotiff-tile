@@ -330,6 +330,7 @@ export default async function createTile({
     console.log("[geotiff-tile] tile_width", tile_width);
     console.log("[geotiff-tile] tile_srs", tile_srs);
     console.log("[geotiff-tile] use_overview", use_overview);
+    console.error("[geotiff-tile]", error);
     throw error;
   }
 }
