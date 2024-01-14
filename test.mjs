@@ -78,3 +78,39 @@ test("simple again", async ({ eq }) => {
 
   writeResult({ data: tile }, "simple-again-tile");
 });
+
+test("antarctica with NaN", async ({ eq }) => {
+  const port = 8081;
+  const { server } = srvd.serve({ port });
+
+  const geotiff = await fromUrl(`http://localhost:${port}/data/bremen_sea_ice_conc_2022_9_9.tif`);
+
+  const image = await geotiff.getImage();
+
+  // [ -3950000, -3943750, 3950000, 4350000 ]
+  const bbox = image.getBoundingBox();
+
+  const params = {
+    bbox,
+    bbox_srs: 3031,
+    debug_level: 3,
+    geotiff,
+    method: "near-vectorize",
+    round: true,
+    tile_array_types: ["Array", "Array", "Array"],
+    tile_height: 256,
+    tile_srs: "EPSG:3031",
+    tile_layout: "[band][row][column]",
+    timed: true,
+    tile_width: 256,
+    use_overview: true
+  };
+
+  const { height, width, tile, extra } = await createTile(params);
+
+  server.close();
+
+  const { readResult } = extra;
+
+  writeResult(readResult, "bremen_sea_ice_conc_2022_9_9");
+});

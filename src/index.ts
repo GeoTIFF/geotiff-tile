@@ -80,6 +80,8 @@ export default async function createTile({
     const start_time = timed ? performance.now() : 0;
 
     if (!bbox) throw new Error("[geotiff-tile] you must provide bbox");
+    if (isNaN(tile_height)) throw new Error("[geotiff-tile] tile_height is NaN");
+    if (isNaN(tile_width)) throw new Error("[geotiff-tile] tile_width is NaN");
 
     const image = await geotiff.getImage(0);
     const image_height = image.getHeight();
@@ -325,12 +327,12 @@ export default async function createTile({
     };
   } catch (error) {
     console.log("[geotiff-tile] failed to create tile");
-    console.log("[geotiff-tile] bbox_in_tile_srs", bbox_in_tile_srs);
-    console.log("[geotiff-tile] tile_height", tile_height);
-    console.log("[geotiff-tile] tile_width", tile_width);
-    console.log("[geotiff-tile] tile_srs", tile_srs);
-    console.log("[geotiff-tile] use_overview", use_overview);
-    console.error("[geotiff-tile]", error);
+    console.log("[geotiff-tile] bbox_in_tile_srs: ", bbox_in_tile_srs);
+    console.log("[geotiff-tile] tile_height:", tile_height);
+    console.log("[geotiff-tile] tile_width;", tile_width);
+    console.log("[geotiff-tile] tile_srs:", tile_srs);
+    console.log("[geotiff-tile] use_overview:", use_overview);
+    console.error("[geotiff-tile] error:", error);
     throw error;
   }
 }
