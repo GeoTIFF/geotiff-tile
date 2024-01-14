@@ -114,3 +114,34 @@ test("antarctica with NaN", async ({ eq }) => {
 
   writeResult(readResult, "bremen_sea_ice_conc_2022_9_9");
 });
+
+test("gadas-max", async ({ eq }) => {
+  const port = 8081;
+  const { server } = srvd.serve({ port });
+
+  const geotiff = await fromUrl(`http://localhost:${port}/data/gadas.tif`);
+
+  const params = {
+    url: "./data/gadas.tif",
+    bbox: [7_698_736.858, 163_239.838, 10_066_450.246, 1_325_082.668],
+    bbox_srs: 3857,
+    debug_level: 0,
+    geotiff,
+    method: "max",
+    round: false,
+    tile_array_types: ["Uint8Array"],
+    tile_height: 512,
+    tile_layout: "[row,column,band]",
+    tile_srs: 3857,
+    tile_width: 512,
+    timed: true,
+    use_overview: true,
+    turbo: true
+  };
+
+  const { height, width, tile, extra } = await createTile(params);
+
+  server.close();
+
+  writeResult({ data: tile, height, width }, "gadas-max");
+});
