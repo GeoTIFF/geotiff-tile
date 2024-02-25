@@ -8,8 +8,11 @@
     <script>
       window.process = {
         env: {
-          TEST_TIMED: true,
+          TEST_timed: false,
+          // TEST_NAME: "geotiff tile (near-vectorize)",
           // TEST_NAME: "pulling tile from 4-band Web Mercator GeoTIFF"
+          // TEST_NAME: "tile greater than extent of source projection",
+          // TEST_NAME: "clamp"
         }
       }
     </script>
@@ -54,13 +57,12 @@
         const url = "./data/umbra_mount_yasur.tiff";
         const geotiff = await GeoTIFF.fromUrl(url);
         const { height, width, tile } = await geotiff_tile.createTile({
-          debug_level: 0,
           geotiff,
 
           // bbox for https://c.tile.openstreetmap.org/14/15903/9098.png
           bbox: [169.43115234375, -19.53908413550933, 169.453125, -19.518375478601566],
           bbox_srs: 4326,
-          debug_level: 10,
+          debug_level: 0,
           expr: ({ pixel }) => [pixel[0], pixel[0], pixel[0]],
           method: "near",
           pixel_depth: 3,
@@ -69,7 +71,7 @@
           tile_layout: "[band][row][column]",
           tile_srs: 4326,
           tile_width: 512,
-          timed: true
+          timed: false
         });
 
         eq(tile[0][0].constructor.name, "Array");
@@ -100,7 +102,7 @@
           tile_layout: "[band][row][column]",
           tile_srs: 3031,
           tile_width: 211,
-          timed: true
+          timed: false
         });
 
         eq(tile[0][0].constructor.name, "Array");
@@ -121,7 +123,7 @@
           tile_height: 64,
           tile_layout: "[band][row][column]",
           tile_width: 64,
-          timed: true,
+          timed: false,
         });
 
         eq(tile[0][0].constructor.name, "Uint8Array");
@@ -131,25 +133,32 @@
         displayTile({ tile: data, height, width});
       });
 
-      test("pulling empty tile from Harvey COG", async ({ eq }) => {
+      test("pulling all black empty tile from Harvey COG", async ({ eq }) => {
+        // this raster uses the color black as no data
         const url = "https://storage.googleapis.com/pdd-stac/disasters/hurricane-harvey/0831/20170831_172754_101c_3b_Visual.tif";
         const geotiff = await GeoTIFF.fromUrl(url);
         const { height, width, tile } = await geotiff_tile.createTile({
           geotiff,
           // mercator tile at x: 61158, y: 108475, z: 18
+          // tile is in the "nodata" region of the geotiff
           bbox: [-96.01226806640625, 29.616445727622548, -96.01089477539062, 29.61763959537609],
           bbox_srs: 4326,
+          debug_level: 0,
           method: "near",
           round: false,
-          timed: true,
+          timed: false,
           tile_height: 256,
           tile_layout: "[band][row][column]",
+          tile_no_data: NaN,
           tile_width: 256,
           tile_srs: 3857,
           use_overview: true
         });
+        console.log("empty tile harvey:", tile);
 
+        // it's an array because of fill values
         eq(tile[0][0].constructor.name, "Uint8Array");
+        eq(tile[0][0][0], 0);
 
         const data = three_to_four_bands({ height, width, tile })
 
@@ -169,7 +178,7 @@
           tile_layout: "[band][row][column]",
           tile_resolution: 0.25,
           tile_width: 512,
-          timed: true,
+          timed: false,
           turbo: true
         });
         eq(tile[0][0].constructor.name, "Uint8Array");
@@ -192,7 +201,7 @@
           tile_layout: "[band][row][column]",
           tile_srs: 4326,
           tile_width: 512,
-          timed: true
+          timed: false
         });
         eq(tile[0][0].constructor.name, "Uint8Array");
 
@@ -226,7 +235,7 @@
           tile_layout: "[band][row][column]",
           tile_srs: 4326,
           tile_width: 512,
-          timed: true
+          timed: false
         });
         eq(tile[0][0].constructor.name, "Uint8Array");
 
@@ -248,7 +257,7 @@
           tile_layout: "[row][column][band]",
           tile_srs: 4326,
           tile_width: 512,
-          timed: true
+          timed: false
         });
         eq(tile[0][0].constructor.name, "Uint8Array");
 
@@ -264,7 +273,7 @@
       test("geotiff tile (near-vectorize)", async ({ eq }) => {
         const geotiff = await GeoTIFF.fromUrl("./data/wildfires.tiff");
         const { height, width, tile } = await geotiff_tile.createTile({
-          debug_level: 2,
+          debug_level: 0,
           geotiff,
           bbox: [ -122.0361328125, 40.97989806962013, -121.9921875, 41.0130657870063 ],
           bbox_srs: 4326,
@@ -274,8 +283,10 @@
           tile_layout: "[band][row][column]",
           tile_srs: 4326,
           tile_width: 512,
-          timed: true
+          timed: false
         });
+        console.log("geotiff tile (near-vectorize)", tile);
+
         eq(tile[0][0].constructor.name, "Uint8Array");
 
         const data = three_to_four_bands({ height, width, tile })
@@ -287,7 +298,7 @@
         const geotiff = await GeoTIFF.fromUrl("https://maxar-ard-samples.s3.amazonaws.com/v3/australia_vineyards/50/213133231011/2019-10-07/10500100191CD200-visual.tif");
         console.log("geotiff:", geotiff);
         const { height, width, tile } = await geotiff_tile.createTile({
-          debug_level: 2,
+          debug_level: 0,
           geotiff,
           bbox: [
               12802284.9934276,
@@ -302,7 +313,7 @@
           tile_layout: "[band][row][column]",
           tile_srs: 3857,
           tile_width: 128,
-          timed: true,
+          timed: false,
           use_overview: true,
           turbo: false
         });
@@ -313,6 +324,61 @@
         const data = three_to_four_bands({ height, width, tile })
 
         displayTile({ tile: data, height, width});
+      });
+
+      test("clamp", async ({ eq }) => {
+        const geotiff = await GeoTIFF.fromUrl("./data/dom1_32_356_5699_1_nw_2020.tif");
+        // console.log("geotiff:", geotiff);
+        const { height, width, tile } = await geotiff_tile.createTile({
+          debug_level: 0,
+          geotiff,
+          bbox: [771265.3262627776, 6698176.788629993, 771402.4894539987, 6698269.944045576],
+          bbox_srs: 3857,
+          method: "near-vectorize",
+          round: true,
+          tile_height: 60,
+          tile_layout: "[band][row][column]",
+          tile_no_data: -32767,
+          tile_srs: 3857,
+          tile_width: 60,
+          timed: false,
+          use_overview: true,
+          turbo: false
+        });
+        eq(tile[0][0][0], -32767);
+        eq(tile[0][0].constructor.name, "Float32Array");
+        eq(tile.length, 1);
+
+        console.log("clamp tile:", tile)
+        const data = three_to_four_bands({ height, width, tile: [tile[0], tile[0], tile[0]] })
+
+        displayTile({ tile: data, height, width});
+      });
+
+      test("tile greater than extent of source projection", async ({ eq }) => {
+        const geotiff = await GeoTIFF.fromUrl("./data/gadas-world.tif");
+        // console.log("geotiff:", geotiff);
+        const { height, width, tile } = await geotiff_tile.createTile({
+          debug_level: 0,
+          geotiff,
+          bbox: [-180, -90, 180, 90],
+          bbox_srs: 4326,
+          method: "near-vectorize",
+          round: true,
+          tile_height: 180,
+          tile_layout: "[row,column,band]",
+          tile_srs: 4326,
+          tile_width: 360,
+          timed: false,
+          use_overview: true,
+          turbo: false
+        });
+        eq(tile.slice(0, 4), Uint8Array.from([0, 0, 0, 0]));
+        eq(tile.length, 259200);
+
+        console.log("gadas world tile:", tile);
+
+        displayTile({ tile, height, width});
       });
     </script>
   </body>

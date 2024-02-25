@@ -61,6 +61,9 @@ await createTile({
   // undefined - same as auto
   tile_array_types_strategy: "untyped",
 
+  // over-ride default "no data" value in output tile
+  tile_no_data: 0,
+
   // projection of the tile
   // as an EPSG code
   tile_srs: 3857,
@@ -76,7 +79,9 @@ await createTile({
   tile_resolution: 0.5,
 
   // whether to use overviews if available
-  use_overview,
+  // default is true
+  // setting to false will mean the usage of the highest resolution data
+  use_overview: false,
 
   // optional, default is false
   // enable experimental turbocharging via proj-turbo
@@ -85,7 +90,18 @@ await createTile({
 ```
 
 ## advanced usage
-### Over-riding geotiff srs
+### over-riding geotiff no data value
+If for some reason your geotiff has values that should be treated as no data,
+but this isn't properly set in the metadata, you can over-ride the no data value
+```js
+await createTile({
+  geotiff,
+  geotiff_no_data: -32767,
+  // rest is the same
+})
+```
+
+### over-riding geotiff srs
 If for some reason geotiff-tile can't parse the correct projection from your geotiff, you can manually
 specify the projection via the geotiff_srs parameter.
 ```js
@@ -96,7 +112,7 @@ await createTile({
 })
 ```
 
-### Image Pixel Coordinates and Simple SRS
+### image pixel coordinates and simple srs
 You can also select pixels using a "simple" spatial reference system where the bottom left of your data
 is the origin [0, 0] and the top-right corner is [width, height].  This is inspired by [Leaflet's Simple CRS](https://leafletjs.com/examples/crs-simple/crs-simple.html).
 ```js

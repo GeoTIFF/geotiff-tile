@@ -19,6 +19,7 @@ export default async function createTile({
   debug_level = 0,
   density = 100,
   geotiff,
+  geotiff_no_data,
   geotiff_srs,
   expr: _expr,
   // fit = false,
@@ -27,6 +28,7 @@ export default async function createTile({
   round,
   tile_array_types,
   tile_height = 256,
+  tile_no_data,
   tile_srs = 3857, // epsg code of the output tile
   tile_array_types_strategy = "auto",
   tile_layout = "[band][row,column]",
@@ -44,6 +46,7 @@ export default async function createTile({
   debug_level?: number;
   density?: number | undefined;
   geotiff: any;
+  geotiff_no_data?: number | undefined;
   geotiff_srs?: number | string | undefined;
   expr?: ({ pixel }: { pixel: number[] }) => number[];
   // fit?: boolean | undefined;
@@ -65,6 +68,7 @@ export default async function createTile({
       >
     | undefined;
   tile_array_types_strategy?: "auto" | "geotiff" | "untyped" | undefined;
+  tile_no_data?: number | string | undefined;
   tile_srs?: number | string;
   tile_height: number;
   tile_layout?: string;
@@ -168,7 +172,8 @@ export default async function createTile({
         // the result from the affine transformation
         return {
           bbox: bbox_nums,
-          debugLevel: debug_level,
+          clamp: true,
+          debug_level,
           srs: "simple",
           geotiff,
           use_overview,
@@ -178,7 +183,8 @@ export default async function createTile({
       } else {
         return {
           bbox: bbox_in_tile_srs,
-          debugLevel: debug_level,
+          clamp: true,
+          debug_level,
           srs: tile_srs,
           geotiff,
           use_overview,
@@ -277,6 +283,8 @@ export default async function createTile({
 
     const out_srs = tile_srs;
 
+    if (typeof geotiff_no_data === "undefined") geotiff_no_data = get_geotiff_no_data_number(image);
+
     const geowarp_options = {
       cutline,
       cutline_srs,
@@ -289,7 +297,7 @@ export default async function createTile({
       // in_geotransform is only necessary if using skewed or rotated in_data
       in_geotransform: out_srs === "simple" ? null : readResult.geotransform,
       in_layout: "[band][row,column]",
-      in_no_data: get_geotiff_no_data_number(image),
+      in_no_data: geotiff_no_data,
       in_srs: geotiff_srs,
       in_width: readResult.width,
       in_height: readResult.height,
@@ -299,6 +307,7 @@ export default async function createTile({
       out_bbox: bbox_in_tile_srs_num,
       out_height: tile_height,
       out_layout: tile_layout,
+      out_no_data: typeof tile_no_data !== "undefined" ? tile_no_data : typeof geotiff_no_data === "number" ? geotiff_no_data : NaN,
       out_pixel_depth: pixel_depth,
       out_resolution: typeof tile_resolution === "number" ? [tile_resolution, tile_resolution] : tile_resolution,
       out_srs,
