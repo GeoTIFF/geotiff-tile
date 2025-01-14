@@ -36,7 +36,8 @@ export default async function createTile({
   tile_width = 256,
   timed = false,
   use_overview = true,
-  turbo = false
+  turbo = false,
+  signal
 }: {
   bands?: number[];
   bbox: [number, number, number, number] | Readonly<[number, number, number, number]> | Readonly<[string, string, string, string]>;
@@ -77,12 +78,13 @@ export default async function createTile({
   timed?: boolean | undefined;
   use_overview?: boolean;
   turbo?: boolean | undefined;
+  signal?: AbortSignal;
 }) {
   let bbox_in_tile_srs;
 
   try {
     const start_time = timed ? performance.now() : 0;
-
+    if (signal && signal.aborted) throw new Error("[geotiff-tile] operation aborted");
     if (!bbox) throw new Error("[geotiff-tile] you must provide bbox");
     if (isNaN(tile_height)) throw new Error("[geotiff-tile] tile_height is NaN");
     if (isNaN(tile_width)) throw new Error("[geotiff-tile] tile_width is NaN");
@@ -178,7 +180,8 @@ export default async function createTile({
           geotiff,
           use_overview,
           target_height: tile_height,
-          target_width: tile_width
+          target_width: tile_width,
+          signal
         };
       } else {
         return {
@@ -189,7 +192,8 @@ export default async function createTile({
           geotiff,
           use_overview,
           target_height: tile_height,
-          target_width: tile_width
+          target_width: tile_width,
+          signal
         };
       }
     })();
