@@ -119,7 +119,21 @@ is the origin [0, 0] and the top-right corner is [width, height].  This is inspi
 await createTile({
   bbox: [128, 656, 144, 672],
   bbox_srs: "simple",
-
   // rest is the same
 })
+```
+
+### abort signal
+You can cancel a request for tile data, by using an [AbortSignal](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) from an [AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController).
+This signal is passed to [geotiff-read-bbox](https://github.com/GeoTIFF/geotiff-read-bbox), which then passes it to [geotiff.js](https://github.com/geotiffjs/geotiff.js).
+```js
+const controller = new AbortController();
+
+const promise = createTile({
+  signal: controller.signal
+  // rest is the same
+})
+
+// cancels the tile request above before the promise resolves
+controller.abort();
 ```
